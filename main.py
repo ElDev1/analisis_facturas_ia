@@ -19,4 +19,14 @@ for factura in sorted(os.listdir(r_facturas)):
   df_factura = funciones.csv_a_dataframe(texto_estructurado)
 
   df = pd.concat([df, df_factura], ignore_index=True)
-  print(df)
+  
+
+df = df.iloc[:, 0:4]
+
+engine = create_engine('sqlite:///facturas.db')
+
+df.to_sql('facturas', engine, if_exists='append', index=False)
+
+engine.dispose()
+
+print('proceso finalizado')
