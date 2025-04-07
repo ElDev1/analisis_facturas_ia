@@ -1,14 +1,12 @@
-import openai
+from groq import Groq
 import fitz
 from dotenv import load_dotenv
 import os
 import pandas as pd
 from io import StringIO
-#from prompt import prompt
+from prompt import prompt
 
 load_dotenv('.env')
-
-OPENAI_API_KEY = os.getenvt('OPENAI_API_KEY')
 
 def extraer_texto_pdf(ruta_pdf):
 
@@ -18,19 +16,37 @@ def extraer_texto_pdf(ruta_pdf):
 
 
 def estructurar_texto(texto):
+  client = Groq(
+  api_key=os.environ.get("GROQ_API_KEY"),
+  )
 
-    cliente = openai.OpenAI(api_key=OPENAI_API_KEY)
+  chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            "role": "system",
+            "content": "Eres un experto en extracción de datos de facturas. Devuelve solo el CSV sin explicaciones ni mensajes adicionales. Si no puedes extraer datos, devuelve exactamente la palabra 'error' sin comillas.",
+        },
+        {
+            "role": "user",
+            "content": prompt + "\n Este es el texto a parsear:\n" + texto,
+        },
 
-    respuesta = cliente.chat.completions.create(
-       model='gpt-4o-mini',
-       messages=[
-          {
-             'role': 'system',
-             'content': 'Eres un experto en estraccion de datos de facturas.'
-          },
-          {
-             'role': 'user',
-             'content': ''
-          }
-       ]
-    )
+    ],
+    model="llama-3.3-70b-versatile",
+  )
+
+  print(chat_completion.choices[0].message.content)
+
+
+    
+
+### test prueba
+texto = """
+Factura N° 102
+Fecha: 2024-03-22
+Cliente: Panadería Los Trigos
+Total: $8450.75
+"""
+
+resultado = estructurar_texto(texto)
+print(resultado)
